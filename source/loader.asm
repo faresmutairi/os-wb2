@@ -1,36 +1,44 @@
-[bits 32]
-[extern kernel_main]
+BITS 32
 
-MULTIBOOT_HEADER_MAGIC  equ 0x1BADB002
-MULTIBOOT_HEADER_FLAGS  equ 0
-CHECKSUM                equ -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
+MULTIBOOT_MAGIC    equ 0x1BADB002
+MULTIBOOT_FLAGS    equ 0x00000003
+MULTIBOOT_CHECKSUM equ -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
+TEST_MARKER        equ 0xCAFEBABE
+STACK_SIZE         equ 16384
 
 section .multiboot
 align 4
-dd MULTIBOOT_HEADER_MAGIC
-dd MULTIBOOT_HEADER_FLAGS
-dd CHECKSUM
+    dd MULTIBOOT_MAGIC
+    dd MULTIBOOT_FLAGS
+    dd MULTIBOOT_CHECKSUM
 
 section .text
 global loader
+extern kernel_main
+
 loader:
-    ; ------------------------
-    ; Task 1: Set EAX to CAFEBABE
-    ; ------------------------
-    mov eax, 0xCAFEBABE
+    ; Task 1: place the known test value in EAX exactly as required.
+    mov eax, TEST_MARKER
 
-    ; ------------------------
-    ; Task 2: Setup stack & call C kernel
-    ; ------------------------
-    mov esp, stack_space + stack_size
-    push eax          ; pass CAFEBABE to C (optional)
+    ; Task 2: create a private 16 KiB stack aligned to 16 bytes.
+    mov esp, stack_top
+    and esp, 0xFFFFFFF0
+
+    ; Keep the stack 16-byte aligned immediately before CALL and pass the
+    ; EAX test value to kernel_main using the 32-bit cdecl convention.
+    sub esp, 12
+    push eax
     call kernel_main
+    add esp, 16
 
-hang:
-    jmp hang
+.halt:
+    cli
+    hlt
+    jmp .halt
 
 section .bss
 align 16
-stack_size equ 16384
-stack_space:
-    resb stack_size
+stack_bottom:
+    resb STACK_SIZE
+stack_top:
+section .note.GNU-stack noalloc noexec nowrite progbits

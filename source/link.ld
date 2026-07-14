@@ -1,24 +1,37 @@
+OUTPUT_FORMAT(elf32-i386)
 ENTRY(loader)
 
 SECTIONS
 {
-    . = 0x00100000;
+    . = 1M;
 
-    .text ALIGN(0x1000) : {
-        *(.multiboot)
+    .text ALIGN(4K) :
+    {
+        KEEP(*(.multiboot))
         *(.text*)
     }
 
-    .rodata ALIGN(0x1000) : {
+    .rodata ALIGN(4K) :
+    {
         *(.rodata*)
     }
 
-    .data ALIGN(0x1000) : {
-        *(.data)
+    .data ALIGN(4K) :
+    {
+        *(.data*)
     }
 
-    .bss ALIGN(0x1000) : {
+    .bss ALIGN(4K) :
+    {
         *(COMMON)
-        *(.bss)
+        *(.bss*)
+    }
+
+    /DISCARD/ :
+    {
+        *(.comment)
+        *(.eh_frame)
+        *(.note*)
     }
 }
+

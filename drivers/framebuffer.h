@@ -1,15 +1,23 @@
-#ifndef FB_H
-#define FB_H
+#ifndef FRAMEBUFFER_H
+#define FRAMEBUFFER_H
 
-void fb_write_cell(unsigned int index, char c, unsigned char fg, unsigned char bg);
-void fb_clear();
-void fb_write(const char* s);
-void fb_write_char(char c);
-void fb_write_int(int num);
-void fb_write_at(const char* s, int x, int y);
+typedef unsigned char  uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int   uint32_t;
 
-static inline void outb(unsigned short port, unsigned char value) {
-    asm volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
-}
+enum {
+    FB_WIDTH = 80,
+    FB_HEIGHT = 25
+};
+
+void fb_clear(void);
+void fb_set_color(uint8_t foreground, uint8_t background);
+void fb_move_cursor(uint16_t x, uint16_t y);
+void fb_write_char(char character);
+void fb_write(const char *text);
+void fb_write_at(const char *text, uint16_t x, uint16_t y);
+void fb_write_int(int value);
+void fb_write_hex(uint32_t value);
 
 #endif
+
